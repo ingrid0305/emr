@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Health Passport｜多國語言隨身電子病歷</title>
+<style>
+:root{
+  --navy:#174a72; --blue:#3b82c4; --sky:#eaf6ff; --ice:#f7fbff;
+  --line:#d7e8f5; --text:#17324a; --muted:#6c8395; --white:#fff;
+  --shadow:0 14px 40px rgba(42,103,145,.12); --radius:22px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;color:var(--text);
+ background:linear-gradient(135deg,#f7fcff 0%,#edf7ff 48%,#f8fcff 100%);min-height:100vh}
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.topbar{max-width:1180px;margin:auto;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;color:var(--navy)}
+.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,#4ea8df,#17619a);display:grid;place-items:center;color:white;font-size:23px;box-shadow:0 8px 18px rgba(34,113,164,.22)}
+.controls{display:flex;align-items:center;gap:10px}
+select,button,input,textarea{font:inherit}
+select,button{border:1px solid var(--line);border-radius:12px;background:white;color:var(--text);padding:10px 13px}
+button{cursor:pointer}
+button.primary{background:var(--navy);color:white;border-color:var(--navy)}
+button:hover{filter:brightness(.98);transform:translateY(-1px)}
+main{max-width:1180px;margin:34px auto;padding:0 22px 60px}
+.hero{background:linear-gradient(135deg,#dff2ff,#f9fdff);border:1px solid #cce7f8;border-radius:30px;padding:30px;display:flex;justify-content:space-between;gap:25px;align-items:center;box-shadow:var(--shadow)}
+.hero h1{margin:0 0 8px;font-size:clamp(28px,4vw,44px);letter-spacing:-1px}
+.hero p{margin:0;color:var(--muted);max-width:650px;line-height:1.7}
+.badge{background:#fff;border:1px solid var(--line);padding:10px 14px;border-radius:999px;color:var(--blue);font-weight:700;white-space:nowrap}
+.grid{display:grid;grid-template-columns:260px 1fr;gap:22px;margin-top:22px}
+nav{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px;height:max-content;box-shadow:var(--shadow);position:sticky;top:86px}
+.nav-btn{display:block;width:100%;text-align:left;border:0;background:transparent;padding:13px 14px;margin:3px 0;border-radius:13px;color:var(--muted)}
+.nav-btn.active{background:var(--sky);color:var(--navy);font-weight:800}
+.panel{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow);display:none}
+.panel.active{display:block}
+.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:22px}
+.panel h2{margin:0 0 5px;font-size:25px}
+.panel-sub{color:var(--muted);margin:0;line-height:1.6}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.full{grid-column:1/-1}
+label{font-weight:700;font-size:14px}
+input,textarea{width:100%;border:1px solid var(--line);border-radius:13px;padding:12px 13px;background:#fbfdff;color:var(--text);outline:none}
+input:focus,textarea:focus,select:focus{border-color:#72b5df;box-shadow:0 0 0 4px rgba(90,170,220,.12)}
+textarea{min-height:105px;resize:vertical}
+.hint{font-size:12px;color:var(--muted)}
+.card{background:var(--ice);border:1px solid var(--line);border-radius:17px;padding:17px;margin-bottom:13px}
+.card-title{font-weight:800;color:var(--navy);margin-bottom:10px}
+.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;flex-wrap:wrap}
+.footer-note{text-align:center;color:var(--muted);font-size:12px;margin-top:28px;line-height:1.7}
+.status{position:fixed;right:20px;bottom:20px;background:var(--navy);color:white;padding:11px 15px;border-radius:13px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s}
+.status.show{opacity:1;transform:translateY(0)}
+@media(max-width:820px){.grid{grid-template-columns:1fr}nav{position:static;display:flex;overflow:auto;gap:4px}.nav-btn{white-space:nowrap}.hero{align-items:flex-start;flex-direction:column}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+@media print{header,nav,.actions,.footer-note{display:none!important}body{background:white}.grid{display:block}.panel{display:block!important;box-shadow:none;border:0;padding:10px 0}.hero{box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="brand"><div class="logo">✚</div><span data-i18n="brand">My Health Passport</span></div>
+    <div class="controls">
+      <span>🌐</span>
+      <select id="language" aria-label="Language">
+        <option value="zh">繁體中文</option><option value="en">English</option>
+        <option value="ja">日本語</option><option value="ko">한국어</option>
+        <option value="vi">Tiếng Việt</option>
+      </select>
+      <button onclick="window.print()" data-i18n="print">列印 / PDF</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div>
+    <h1 data-i18n="title">我的隨身電子病歷</h1>
+    <p data-i18n="subtitle">一份清楚、可攜、適合跨國就醫使用的個人健康資料。請在需要時提供給醫療專業人員參考。</p>
+  </div>
+  <div class="badge">🔒 <span data-i18n="local">資料只儲存在本機</span></div>
+</section>
+
+<div class="grid">
+<nav>
+  <button class="nav-btn active" data-tab="basic" data-i18n="basic">👤 基本資料</button>
+  <button class="nav-btn" data-tab="history" data-i18n="history">🩺 個人病史</button>
+  <button class="nav-btn" data-tab="family" data-i18n="family">👪 家族史</button>
+  <button class="nav-btn" data-tab="surgery" data-i18n="surgery">🏥 手術／住院史</button>
+  <button class="nav-btn" data-tab="meds" data-i18n="meds">💊 用藥史</button>
+  <button class="nav-btn" data-tab="allergy" data-i18n="allergy">⚠️ 過敏與不良反應</button>
+  <button class="nav-btn" data-tab="vaccine" data-i18n="vaccine">💉 疫苗紀錄</button>
+  <button class="nav-btn" data-tab="other" data-i18n="other">📋 其他重要資訊</button>
+</nav>
+
+<section>
+<div class="panel active" id="basic">
+  <div class="panel-head"><div><h2 data-i18n="basic">基本資料</h2><p class="panel-sub" data-i18n="basicSub">讓醫療人員快速確認您的身分與基本狀況。</p></div></div>
+  <div class="form-grid">
+    <div class="field"><label data-i18n="name">姓名</label><input data-key="name" autocomplete="name"></div>
+    <div class="field"><label data-i18n="dob">出生日期</label><input data-key="dob" type="date"></div>
+    <div class="field"><label data-i18n="sex">生理性別</label><input data-key="sex"></div>
+    <div class="field"><label data-i18n="blood">血型</label><input data-key="blood" placeholder="A / B / AB / O"></div>
+    <div class="field"><label data-i18n="country">國籍／居住地</label><input data-key="country"></div>
+    <div class="field"><label data-i18n="contact">緊急聯絡人</label><input data-key="contact"></div>
+    <div class="field full"><label data-i18n="phone">緊急聯絡電話</label><input data-key="phone" type="tel"></div>
+  </div>
+</div>
+
+<div class="panel" id="history">
+  <div class="panel-head"><div><h2 data-i18n="history">個人病史</h2><p class="panel-sub" data-i18n="historySub">包含目前與過去的重要疾病、慢性病及相關診斷。</p></div></div>
+  <div class="field"><label data-i18n="historyLabel">疾病／診斷／重要健康事件</label><textarea data-key="history" placeholder="例如：診斷名稱、診斷年份、目前狀態、重要檢查結果……"></textarea></div>
+</div>
+
+<div class="panel" id="family">
+  <div class="panel-head"><div><h2 data-i18n="family">家族史</h2><p class="panel-sub" data-i18n="familySub">記錄直系親屬的重要疾病與家族遺傳疾病資訊。</p></div></div>
+  <div class="field"><label data-i18n="familyLabel">親屬與疾病</label><textarea data-key="family" placeholder="例如：父親—高血壓；母親—糖尿病；兄弟姊妹—……"></textarea></div>
+</div>
+
+<div class="panel" id="surgery">
+  <div class="panel-head"><div><h2 data-i18n="surgery">手術／住院史</h2><p class="panel-sub" data-i18n="surgerySub">記錄手術、住院、重大外傷或麻醉相關資訊。</p></div></div>
+  <div class="form-grid">
+    <div class="field"><label data-i18n="procedure">手術／處置名稱</label><input data-key="procedure"></div>
+    <div class="field"><label data-i18n="date">日期</label><input data-key="procedureDate" type="date"></div>
+    <div class="field full"><label data-i18n="surgeryNote">醫院／醫師／備註</label><textarea data-key="surgeryNote"></textarea></div>
+  </div>
+</div>
+
+<div class="panel" id="meds">
+  <div class="panel-head"><div><h2 data-i18n="meds">用藥史</h2><p class="panel-sub" data-i18n="medsSub">記錄目前與近期使用的處方藥、非處方藥、保健品。</p></div></div>
+  <div class="form-grid">
+    <div class="field"><label data-i18n="drug">藥品名稱</label><input data-key="drug"></div>
+    <div class="field"><label data-i18n="dose">劑量／頻率</label><input data-key="dose"></div>
+    <div class="field full"><label data-i18n="medNote">開始／停止日期與備註</label><textarea data-key="medNote"></textarea></div>
+  </div>
+</div>
+
+<div class="panel" id="allergy">
+  <div class="panel-head"><div><h2 data-i18n="allergy">過敏與不良反應</h2><p class="panel-sub" data-i18n="allergySub">藥物、食物、環境或其他曾發生的重要反應。</p></div></div>
+  <div class="field"><label data-i18n="allergyLabel">過敏原與反應</label><textarea data-key="allergy"></textarea></div>
+</div>
+
+<div class="panel" id="vaccine">
+  <div class="panel-head"><div><h2 data-i18n="vaccine">疫苗紀錄</h2><p class="panel-sub" data-i18n="vaccineSub">可記錄疫苗名稱、接種日期、劑次及其他備註。</p></div></div>
+  <div class="field"><label data-i18n="vaccineLabel">疫苗紀錄</label><textarea data-key="vaccine" placeholder="疫苗名稱｜日期｜劑次｜備註"></textarea></div>
+</div>
+
+<div class="panel" id="other">
+  <div class="panel-head"><div><h2 data-i18n="other">其他重要資訊</h2><p class="panel-sub" data-i18n="otherSub">補充醫療人員可能需要知道的資訊。</p></div></div>
+  <div class="form-grid">
+    <div class="field full"><label data-i18n="preg">生育／懷孕相關資訊（如適用）</label><textarea data-key="preg"></textarea></div>
+    <div class="field full"><label data-i18n="lifestyle">生活型態與其他資訊</label><textarea data-key="lifestyle" placeholder="飲食、吸菸／酒精、旅行、職業暴露、重要醫療偏好等"></textarea></div>
+    <div class="field full"><label data-i18n="directive">醫療備註／特殊需求</label><textarea data-key="directive"></textarea></div>
+  </div>
+</div>
+
+<div class="actions">
+  <button onclick="clearData()" data-i18n="clear">清除本機資料</button>
+  <button class="primary" onclick="saveData()" data-i18n="save">儲存到本機</button>
+</div>
+</section>
+</div>
+<p class="footer-note" data-i18n="notice">重要提醒：這是靜態個人健康資料工具，不是醫療診斷系統。請核對資料正確性，緊急情況仍應直接聯絡當地緊急醫療服務。</p>
+</main>
+<div class="status" id="status"></div>
+
+<script>
+const T={
+zh:{brand:"My Health Passport",title:"我的隨身電子病歷",subtitle:"一份清楚、可攜、適合跨國就醫使用的個人健康資料。請在需要時提供給醫療專業人員參考。",local:"資料只儲存在本機",print:"列印 / PDF",basic:"👤 基本資料",basicSub:"讓醫療人員快速確認您的身分與基本狀況。",history:"🩺 個人病史",historySub:"包含目前與過去的重要疾病、慢性病及相關診斷。",family:"👪 家族史",familySub:"記錄直系親屬的重要疾病與家族遺傳疾病資訊。",surgery:"🏥 手術／住院史",surgerySub:"記錄手術、住院、重大外傷或麻醉相關資訊。",meds:"💊 用藥史",medsSub:"記錄目前與近期使用的處方藥、非處方藥、保健品。",allergy:"⚠️ 過敏與不良反應",allergySub:"藥物、食物、環境或其他曾發生的重要反應。",vaccine:"💉 疫苗紀錄",vaccineSub:"可記錄疫苗名稱、接種日期、劑次及其他備註。",other:"📋 其他重要資訊",otherSub:"補充醫療人員可能需要知道的資訊。",name:"姓名",dob:"出生日期",sex:"生理性別",blood:"血型",country:"國籍／居住地",contact:"緊急聯絡人",phone:"緊急聯絡電話",historyLabel:"疾病／診斷／重要健康事件",familyLabel:"親屬與疾病",procedure:"手術／處置名稱",date:"日期",surgeryNote:"醫院／醫師／備註",drug:"藥品名稱",dose:"劑量／頻率",medNote:"開始／停止日期與備註",allergyLabel:"過敏原與反應",vaccineLabel:"疫苗紀錄",preg:"生育／懷孕相關資訊（如適用）",lifestyle:"生活型態與其他資訊",directive:"醫療備註／特殊需求",clear:"清除本機資料",save:"儲存到本機",notice:"重要提醒：這是靜態個人健康資料工具，不是醫療診斷系統。請核對資料正確性，緊急情況仍應直接聯絡當地緊急醫療服務。",saved:"已儲存到本機瀏覽器。",cleared:"本機資料已清除。"},
+en:{brand:"My Health Passport",title:"My Personal Health Passport",subtitle:"A clear, portable health record designed for use when receiving care across countries.",local:"Stored locally on this device",print:"Print / PDF",basic:"👤 Basic Information",basicSub:"Quickly identify you and your essential personal details.",history:"🩺 Medical History",historySub:"Current and past conditions, chronic illnesses, and diagnoses.",family:"👪 Family History",familySub:"Important illnesses and hereditary conditions in close relatives.",surgery:"🏥 Surgery / Hospitalization",surgerySub:"Surgeries, hospital stays, major injuries, or anesthesia-related information.",meds:"💊 Medication History",medsSub:"Current and recent prescription drugs, OTC medicines, and supplements.",allergy:"⚠️ Allergies & Reactions",allergySub:"Drug, food, environmental, or other significant reactions.",vaccine:"💉 Vaccination Record",vaccineSub:"Vaccine name, date, dose number, and notes.",other:"📋 Other Important Information",otherSub:"Additional information healthcare professionals may need.",name:"Full name",dob:"Date of birth",sex:"Sex",blood:"Blood type",country:"Nationality / Residence",contact:"Emergency contact",phone:"Emergency phone",historyLabel:"Conditions / Diagnoses / Major health events",familyLabel:"Relative and condition",procedure:"Procedure / Surgery",date:"Date",surgeryNote:"Hospital / Doctor / Notes",drug:"Medication",dose:"Dose / Frequency",medNote:"Start / Stop date and notes",allergyLabel:"Allergen and reaction",vaccineLabel:"Vaccination record",preg:"Reproductive / Pregnancy information (if applicable)",lifestyle:"Lifestyle & other information",directive:"Medical notes / Special needs",clear:"Clear local data",save:"Save locally",notice:"Important: This is a static personal health information tool, not a medical diagnostic system. Verify your information and contact local emergency medical services in an emergency.",saved:"Saved to this browser.",cleared:"Local data cleared."},
+ja:{brand:"My Health Passport",title:"私の携帯用電子健康記録",subtitle:"海外を含む受診時に使いやすい、個人の健康情報をまとめた記録です。",local:"この端末にのみ保存",print:"印刷 / PDF",basic:"👤 基本情報",basicSub:"本人確認と基本情報をすばやく確認できます。",history:"🩺 既往歴",historySub:"現在・過去の病気、慢性疾患、診断情報。",family:"👪 家族歴",familySub:"近親者の重要な病気や遺伝性疾患。",surgery:"🏥 手術・入院歴",surgerySub:"手術、入院、重大な外傷、麻酔に関する情報。",meds:"💊 服薬歴",medsSub:"現在・最近の処方薬、市販薬、サプリメント。",allergy:"⚠️ アレルギー・副作用",allergySub:"薬、食物、環境などによる重要な反応。",vaccine:"💉 予防接種記録",vaccineSub:"ワクチン名、接種日、回数、備考。",other:"📋 その他の重要情報",otherSub:"医療者が知る必要のある追加情報。",name:"氏名",dob:"生年月日",sex:"性別",blood:"血液型",country:"国籍／居住地",contact:"緊急連絡先",phone:"緊急電話番号",historyLabel:"病気／診断／重要な健康イベント",familyLabel:"親族と病気",procedure:"手術／処置名",date:"日付",surgeryNote:"病院／医師／備考",drug:"薬剤名",dose:"用量／頻度",medNote:"開始／中止日と備考",allergyLabel:"アレルゲンと反応",vaccineLabel:"予防接種記録",preg:"妊娠・生殖に関する情報（該当する場合）",lifestyle:"生活習慣・その他",directive:"医療メモ／特別な配慮",clear:"ローカルデータを消去",save:"ローカル保存",notice:"重要：これは静的な健康情報ツールであり、診断システムではありません。内容を確認し、緊急時は現地の救急サービスへ連絡してください。",saved:"このブラウザに保存しました。",cleared:"ローカルデータを消去しました。"},
+ko:{brand:"My Health Passport",title:"나의 휴대용 전자 건강기록",subtitle:"국가를 넘어 진료를 받을 때 활용할 수 있도록 개인 건강정보를 정리합니다.",local:"이 기기에만 저장",print:"인쇄 / PDF",basic:"👤 기본 정보",basicSub:"신원과 필수 기본 정보를 빠르게 확인합니다.",history:"🩺 과거 병력",historySub:"현재 및 과거 질환, 만성질환, 진단 정보.",family:"👪 가족력",familySub:"가까운 가족의 주요 질환 및 유전성 질환.",surgery:"🏥 수술 / 입원력",surgerySub:"수술, 입원, 주요 외상 및 마취 관련 정보.",meds:"💊 복약력",medsSub:"현재 및 최근 처방약, 일반의약품, 보충제.",allergy:"⚠️ 알레르기 및 이상반응",allergySub:"약물, 음식, 환경 등에 대한 중요한 반응.",vaccine:"💉 예방접종 기록",vaccineSub:"백신명, 접종일, 차수 및 메모.",other:"📋 기타 중요 정보",otherSub:"의료진에게 필요한 추가 정보.",name:"이름",dob:"생년월일",sex:"성별",blood:"혈액형",country:"국적 / 거주지",contact:"비상 연락처",phone:"비상 전화번호",historyLabel:"질환 / 진단 / 주요 건강 사건",familyLabel:"가족 및 질환",procedure:"수술 / 처치명",date:"날짜",surgeryNote:"병원 / 의사 / 메모",drug:"약 이름",dose:"용량 / 빈도",medNote:"시작 / 중단일 및 메모",allergyLabel:"알레르겐 및 반응",vaccineLabel:"예방접종 기록",preg:"임신 / 생식 관련 정보(해당 시)",lifestyle:"생활습관 및 기타 정보",directive:"의료 메모 / 특별 요청",clear:"로컬 데이터 삭제",save:"로컬 저장",notice:"중요: 본 페이지는 정적 개인 건강정보 도구이며 진단 시스템이 아닙니다. 정보를 확인하고 응급 상황에서는 현지 응급의료 서비스를 이용하세요.",saved:"이 브라우저에 저장했습니다.",cleared:"로컬 데이터를 삭제했습니다."},
+vi:{brand:"My Health Passport",title:"Hồ sơ sức khỏe cá nhân",subtitle:"Hồ sơ sức khỏe rõ ràng, dễ mang theo khi bạn khám chữa bệnh ở nhiều quốc gia.",local:"Chỉ lưu trên thiết bị này",print:"In / PDF",basic:"👤 Thông tin cơ bản",basicSub:"Thông tin nhận diện và dữ liệu cá nhân thiết yếu.",history:"🩺 Tiền sử bệnh",historySub:"Bệnh hiện tại, bệnh trước đây, bệnh mạn tính và chẩn đoán.",family:"👪 Tiền sử gia đình",familySub:"Các bệnh quan trọng và bệnh di truyền trong gia đình.",surgery:"🏥 Phẫu thuật / Nhập viện",surgerySub:"Phẫu thuật, nhập viện, chấn thương lớn hoặc thông tin gây mê.",meds:"💊 Tiền sử dùng thuốc",medsSub:"Thuốc kê đơn, thuốc không kê đơn và thực phẩm bổ sung đang hoặc đã dùng gần đây.",allergy:"⚠️ Dị ứng & Phản ứng",allergySub:"Phản ứng quan trọng với thuốc, thực phẩm hoặc môi trường.",vaccine:"💉 Tiêm chủng",vaccineSub:"Tên vắc-xin, ngày tiêm, mũi tiêm và ghi chú.",other:"📋 Thông tin quan trọng khác",otherSub:"Thông tin bổ sung mà nhân viên y tế có thể cần.",name:"Họ và tên",dob:"Ngày sinh",sex:"Giới tính",blood:"Nhóm máu",country:"Quốc tịch / Nơi cư trú",contact:"Liên hệ khẩn cấp",phone:"Số điện thoại khẩn cấp",historyLabel:"Bệnh / Chẩn đoán / Sự kiện sức khỏe quan trọng",familyLabel:"Người thân và bệnh",procedure:"Phẫu thuật / Thủ thuật",date:"Ngày",surgeryNote:"Bệnh viện / Bác sĩ / Ghi chú",drug:"Tên thuốc",dose:"Liều / Tần suất",medNote:"Ngày bắt đầu / ngừng và ghi chú",allergyLabel:"Dị nguyên và phản ứng",vaccineLabel:"Lịch sử tiêm chủng",preg:"Thông tin sinh sản / mang thai (nếu áp dụng)",lifestyle:"Lối sống & thông tin khác",directive:"Ghi chú y tế / Nhu cầu đặc biệt",clear:"Xóa dữ liệu cục bộ",save:"Lưu cục bộ",notice:"Lưu ý: Đây là công cụ thông tin sức khỏe cá nhân tĩnh, không phải hệ thống chẩn đoán y khoa. Hãy kiểm tra thông tin và liên hệ dịch vụ cấp cứu địa phương khi cần.",saved:"Đã lưu trên trình duyệt này.",cleared:"Đã xóa dữ liệu cục bộ."}
+};
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+function applyLang(lang){
+  const t=T[lang]||T.zh;
+  $$("[data-i18n]").forEach(el=>{if(t[el.dataset.i18n])el.textContent=t[el.dataset.i18n]});
+  document.documentElement.lang=lang==="zh"?"zh-Hant":lang;
+  localStorage.setItem("mhp-lang",lang);
+}
+function saveData(){
+  const data={}; $$("[data-key]").forEach(el=>data[el.dataset.key]=el.value);
+  localStorage.setItem("mhp-data",JSON.stringify(data)); toast((T[$("#language").value]||T.zh).saved);
+}
+function loadData(){
+  try{const d=JSON.parse(localStorage.getItem("mhp-data")||"{}");$$("[data-key]").forEach(el=>{if(d[el.dataset.key]!=null)el.value=d[el.dataset.key]})}catch(e){}
+}
+function clearData(){localStorage.removeItem("mhp-data");$$("[data-key]").forEach(el=>el.value="");toast((T[$("#language").value]||T.zh).cleared)}
+function toast(msg){const s=$("#status");s.textContent=msg;s.classList.add("show");setTimeout(()=>s.classList.remove("show"),2200)}
+$$(".nav-btn").forEach(b=>b.addEventListener("click",()=>{$$(".nav-btn").forEach(x=>x.classList.remove("active"));$$(".panel").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#"+b.dataset.tab).classList.add("active")}));
+$("#language").value=localStorage.getItem("mhp-lang")||"zh";
+$("#language").addEventListener("change",e=>applyLang(e.target.value));
+applyLang($("#language").value);loadData();
+</script>
+</body>
+</html>
