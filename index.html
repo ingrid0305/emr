@@ -160,7 +160,11 @@ textarea{min-height:105px;resize:vertical}
 
 <div class="actions">
   <button onclick="clearData()" data-i18n="clear">清除本機資料</button>
+  <button onclick="exportHealthRecord()" data-i18n="export">匯出病歷</button>
+  <button onclick="exportPortableHTML()" data-i18n="portable">另存隨身版</button>
+  <button onclick="document.getElementById('importFile').click()" data-i18n="import">匯入病歷</button>
   <button class="primary" onclick="saveData()" data-i18n="save">儲存到本機</button>
+  <input id="importFile" type="file" accept=".json,application/json" hidden onchange="importHealthRecord(event)">
 </div>
 </section>
 </div>
@@ -236,6 +240,95 @@ name:"الاسم الكامل",dob:"تاريخ الميلاد",sex:"الجنس",
 }
 };
 
+
+function exportPortableHTML(){
+  const data=currentRecord().data;
+  const lang=document.getElementById("language").value;
+  const stamp=new Date().toISOString().slice(0,10);
+  const payload=JSON.stringify({version:"4.0",language:lang,data});
+  const markerStart="<!-- PORTABLE_RECORD_START -->";
+  const markerEnd="<!-- PORTABLE_RECORD_END -->";
+  let copy=document.documentElement.outerHTML;
+  // Remove any previous embedded record.
+  copy=copy.replace(/<!-- PORTABLE_RECORD_START -->[\\s\\S]*?<!-- PORTABLE_RECORD_END -->/g,"");
+  const embedded=`${markerStart}\\n<script>window.__PORTABLE_RECORD__=${payload};<\\/script>\\n${markerEnd}`;
+  copy=copy.replace("</head>", embedded+"</head>");
+  const blob=new Blob(["<!doctype html>\\n"+copy],{type:"text/html;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`My-Health-Passport-${stamp}-portable.html`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast((getLang()).portableDone || "已產生帶資料的隨身版 HTML。");
+}
+function restorePortableRecord(){
+  const r=window.__PORTABLE_RECORD__;
+  if(!r || !r.data) return;
+  document.querySelectorAll("[data-key]").forEach(el=>{
+    if(r.data[el.dataset.key]!==undefined) el.value=String(r.data[el.dataset.key]);
+  });
+  if(r.language && document.querySelector(`#language option[value="${r.language}"]`)){
+    document.getElementById("language").value=r.language;
+  }
+  localStorage.setItem("mhp-data",JSON.stringify(r.data));
+}
+
+const RECORD_VERSION="4.0";
+function currentRecord(){
+  const data={};
+  document.querySelectorAll("[data-key]").forEach(el=>data[el.dataset.key]=el.value);
+  return {
+    app:"My Health Passport",
+    version:RECORD_VERSION,
+    exportedAt:new Date().toISOString(),
+    language:document.getElementById("language").value,
+    data
+  };
+}
+function exportHealthRecord(){
+  const record=currentRecord();
+  const blob=new Blob([JSON.stringify(record,null,2)],{type:"application/json;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  const date=new Date().toISOString().slice(0,10);
+  a.href=url;
+  a.download=`My-Health-Passport-${date}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast((getLang()).exported || "病歷已匯出。");
+}
+function importHealthRecord(event){
+  const file=event.target.files && event.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(){
+    try{
+      const record=JSON.parse(reader.result);
+      if(!record || record.app!=="My Health Passport" || !record.data || typeof record.data!=="object")
+        throw new Error("Invalid record");
+      document.querySelectorAll("[data-key]").forEach(el=>{
+        const v=record.data[el.dataset.key];
+        if(v!==undefined) el.value=String(v);
+      });
+      localStorage.setItem("mhp-data",JSON.stringify(record.data));
+      if(record.language && document.querySelector(`#language option[value="${record.language}"]`)){
+        document.getElementById("language").value=record.language;
+        applyLang(record.language);
+      }
+      toast((getLang()).imported || "病歷已匯入。");
+    }catch(e){
+      toast((getLang()).invalid || "病歷檔案格式不正確。");
+    }
+    event.target.value="";
+  };
+  reader.readAsText(file,"utf-8");
+}
+function getLang(){
+  const lang=document.getElementById("language").value;
+  return (typeof EXT!=="undefined" && EXT[lang]) ? EXT[lang] : (T[lang]||T.zh);
+}
+
 const originalApplyLang=applyLang;
 applyLang=function(lang){
   if(EXT[lang]){
@@ -246,6 +339,34 @@ applyLang=function(lang){
     localStorage.setItem("mhp-lang",lang);
   } else originalApplyLang(lang);
 };
+
+const UI_EXTRA={
+zh:{export:"匯出病歷",import:"匯入病歷",exported:"病歷已匯出。",imported:"病歷已成功匯入。",invalid:"病歷檔案格式不正確。"},
+en:{export:"Export record",import:"Import record",exported:"Health record exported.",imported:"Health record imported.",invalid:"Invalid health record file."},
+fr:{export:"Exporter le dossier",import:"Importer le dossier",exported:"Dossier exporté.",imported:"Dossier importé.",invalid:"Fichier de dossier invalide."},
+de:{export:"Akte exportieren",import:"Akte importieren",exported:"Gesundheitsakte exportiert.",imported:"Gesundheitsakte importiert.",invalid:"Ungültige Akte."},
+es:{export:"Exportar historial",import:"Importar historial",exported:"Historial exportado.",imported:"Historial importado.",invalid:"Archivo de historial no válido."},
+it:{export:"Esporta cartella",import:"Importa cartella",exported:"Cartella esportata.",imported:"Cartella importata.",invalid:"File sanitario non valido."},
+pt:{export:"Exportar registro",import:"Importar registro",exported:"Registro exportado.",imported:"Registro importado.",invalid:"Arquivo de saúde inválido."},
+ja:{export:"病歴をエクスポート",import:"病歴をインポート",exported:"病歴をエクスポートしました。",imported:"病歴を読み込みました。",invalid:"病歴ファイルの形式が正しくありません。"},
+ko:{export:"병력 내보내기",import:"병력 가져오기",exported:"건강기록을 내보냈습니다.",imported:"건강기록을 가져왔습니다.",invalid:"건강기록 파일 형식이 올바르지 않습니다."},
+vi:{export:"Xuất hồ sơ",import:"Nhập hồ sơ",exported:"Đã xuất hồ sơ sức khỏe.",imported:"Đã nhập hồ sơ sức khỏe.",invalid:"Tệp hồ sơ không hợp lệ."},
+th:{export:"ส่งออกประวัติ",import:"นำเข้าประวัติ",exported:"ส่งออกข้อมูลสุขภาพแล้ว",imported:"นำเข้าข้อมูลสุขภาพแล้ว",invalid:"ไฟล์ข้อมูลสุขภาพไม่ถูกต้อง"},
+id:{export:"Ekspor rekam medis",import:"Impor rekam medis",exported:"Rekam kesehatan diekspor.",imported:"Rekam kesehatan diimpor.",invalid:"File rekam kesehatan tidak valid."},
+ms:{export:"Eksport rekod",import:"Import rekod",exported:"Rekod kesihatan dieksport.",imported:"Rekod kesihatan diimport.",invalid:"Fail rekod tidak sah."},
+nl:{export:"Dossier exporteren",import:"Dossier importeren",exported:"Gezondheidsdossier geëxporteerd.",imported:"Gezondheidsdossier geïmporteerd.",invalid:"Ongeldig gezondheidsbestand."},
+ru:{export:"Экспорт записи",import:"Импорт записи",exported:"Медицинская запись экспортирована.",imported:"Медицинская запись импортирована.",invalid:"Неверный файл медицинской записи."},
+ar:{export:"تصدير السجل",import:"استيراد السجل",exported:"تم تصدير السجل الصحي.",imported:"تم استيراد السجل الصحي.",invalid:"ملف السجل الصحي غير صالح."}
+};
+const oldApplyExtended=applyLang;
+applyLang=function(lang){
+  oldApplyExtended(lang);
+  const x=UI_EXTRA[lang]||UI_EXTRA.en;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    if(x[el.dataset.i18n]) el.textContent=x[el.dataset.i18n];
+  });
+};
+
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 function applyLang(lang){
   const t=T[lang]||T.zh;
@@ -265,7 +386,43 @@ function toast(msg){const s=$("#status");s.textContent=msg;s.classList.add("show
 $$(".nav-btn").forEach(b=>b.addEventListener("click",()=>{$$(".nav-btn").forEach(x=>x.classList.remove("active"));$$(".panel").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#"+b.dataset.tab).classList.add("active")}));
 $("#language").value=localStorage.getItem("mhp-lang")||"zh";
 $("#language").addEventListener("change",e=>applyLang(e.target.value));
-applyLang($("#language").value);loadData();
+restorePortableRecord(); 
+const PORTABLE_I18N={
+zh:{portable:"另存隨身版",portableDone:"已產生帶資料的隨身版 HTML。"},
+en:{portable:"Save portable copy",portableDone:"Portable HTML with your data created."},
+ja:{portable:"データ付きHTMLを保存",portableDone:"データ入りのポータブルHTMLを作成しました。"},
+ko:{portable:"데이터 포함 HTML 저장",portableDone:"데이터가 포함된 휴대용 HTML을 만들었습니다."},
+vi:{portable:"Lưu bản HTML mang theo",portableDone:"Đã tạo HTML di động có dữ liệu."},
+fr:{portable:"Enregistrer une copie portable",portableDone:"La version HTML portable avec vos données a été créée."},
+de:{portable:"Portable Kopie speichern",portableDone:"Portable HTML-Datei mit Ihren Daten erstellt."},
+es:{portable:"Guardar copia portátil",portableDone:"Se creó el HTML portátil con sus datos."},
+it:{portable:"Salva copia portatile",portableDone:"Creato l'HTML portatile con i tuoi dati."},
+pt:{portable:"Salvar cópia portátil",portableDone:"HTML portátil com seus dados criado."},
+th:{portable:"บันทึกฉบับพกพา",portableDone:"สร้าง HTML แบบพกพาพร้อมข้อมูลแล้ว"},
+id:{portable:"Simpan salinan portabel",portableDone:"HTML portabel dengan data Anda telah dibuat."},
+ms:{portable:"Simpan salinan mudah alih",portableDone:"HTML mudah alih dengan data anda telah dibuat."},
+nl:{portable:"Draagbare kopie opslaan",portableDone:"Draagbare HTML met uw gegevens is gemaakt."},
+ru:{portable:"Сохранить переносную копию",portableDone:"Создан переносной HTML-файл с вашими данными."},
+ar:{portable:"حفظ نسخة محمولة",portableDone:"تم إنشاء ملف HTML محمول يحتوي على بياناتك."}
+};
+const oldApplyLang2=applyLang;
+applyLang=function(lang){
+  oldApplyLang2(lang);
+  const x=PORTABLE_I18N[lang]||PORTABLE_I18N.en;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    if(x[el.dataset.i18n]) el.textContent=x[el.dataset.i18n];
+  });
+};
+
+applyLang($("#language").value); loadData();
+document.querySelectorAll("[data-key]").forEach(el=>{
+  el.addEventListener("input",()=>{
+    const data={};
+    document.querySelectorAll("[data-key]").forEach(x=>data[x.dataset.key]=x.value);
+    localStorage.setItem("mhp-data",JSON.stringify(data));
+  });
+});
+
 </script>
 </body>
 </html>
